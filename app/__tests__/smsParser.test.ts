@@ -60,3 +60,24 @@ describe('parseBankMessage', () => {
 test('normalizeDigits', () => {
   expect(normalizeDigits('١٢٣٫٤٥')).toBe('123.45');
 });
+
+import { looksLikeTransaction } from '../src/utils/smsParser';
+import { parseImportUrl } from '../src/utils/inbound';
+
+describe('looksLikeTransaction', () => {
+  it('accepts debits/credits, rejects OTPs and promos', () => {
+    expect(looksLikeTransaction('Purchase of SAR 10 at X')).toBe(true);
+    expect(looksLikeTransaction('تم إيداع مبلغ 500 ريال')).toBe(true);
+    expect(looksLikeTransaction('OTP for purchase of SAR 50 is 123456')).toBe(false);
+    expect(looksLikeTransaction('رمز التحقق لعملية شراء 50 ريال هو 1234')).toBe(false);
+    expect(looksLikeTransaction('Win SAR 1000 now! Visit our branch')).toBe(false);
+  });
+});
+
+describe('parseImportUrl', () => {
+  it('decodes the text query param', () => {
+    expect(parseImportUrl('mywallet://import?text=Paid%20SAR%2010%20at%20Uber')).toBe('Paid SAR 10 at Uber');
+    expect(parseImportUrl('mywallet://import?x=1&text=a+b')).toBe('a b');
+    expect(parseImportUrl('mywallet://other?text=a')).toBeNull();
+  });
+});

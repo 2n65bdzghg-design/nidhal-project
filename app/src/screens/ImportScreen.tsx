@@ -11,7 +11,7 @@ interface Row { p: ParsedMessage; accountId: string; matched: boolean; dup: bool
 
 export default function ImportScreen() {
   const { t, colors, row } = useSettings();
-  const { accounts, transactions, addTransactions } = useData();
+  const { accounts, transactions, addTransactions, pending, resolvePending } = useData();
   const [text, setText] = useState('');
   const [rows, setRows] = useState<Row[]>([]);
   const [skipped, setSkipped] = useState(0);
@@ -48,6 +48,28 @@ export default function ImportScreen() {
   return (
     <Screen>
       <T size={22} bold>{t('importTitle')}</T>
+      {pending.length > 0 && (
+        <>
+          <T bold size={16}>{t('needsReview')} ({pending.length})</T>
+          {pending.map((p) => {
+            const cat = categoryById(p.category);
+            return (
+              <Card key={p.id}>
+                <View style={{ flexDirection: row, alignItems: 'center', gap: 12 }}>
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <T bold numberOfLines={1}>{cat.icon} {p.merchant || t('cat_' + p.category)}</T>
+                    <T size={12} muted>{t('cat_' + p.category)} · {isoDay(p.date)}{p.last4 ? ` · ••${p.last4}` : ''}</T>
+                  </View>
+                  <T bold color={p.type === 'income' ? colors.success : colors.danger}>{p.type === 'income' ? '+' : '−'}{money(p.amount, p.currency)}</T>
+                </View>
+                <T size={12} muted>{t('assignTo')}</T>
+                <Wrap>{accounts.map((a) => <Chip key={a.id} label={a.name} active={false} onPress={() => resolvePending(p.id, a.id)} />)}</Wrap>
+                <Button kind="ghost" title={t('dismiss')} onPress={() => resolvePending(p.id, null)} />
+              </Card>
+            );
+          })}
+        </>
+      )}
       <T muted>{t('importHelp')}</T>
       <Field label="" value={text} onChangeText={setText} placeholder={t('paste')} multiline style={{ minHeight: 140 }} autoCapitalize="none" />
       <T size={13} muted bold>{t('defaultAccount')}</T>

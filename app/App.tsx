@@ -8,6 +8,8 @@ import { StatusBar } from 'expo-status-bar';
 import { SettingsProvider, useSettings } from './src/context/SettingsContext';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { DataProvider } from './src/context/DataContext';
+import { SmsProvider } from './src/context/SmsContext';
+import { startLinkListener } from './src/utils/inbound';
 import AuthScreen from './src/screens/AuthScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import TransactionsScreen from './src/screens/TransactionsScreen';
@@ -44,6 +46,7 @@ function Main() {
 function Root() {
   const { t, colors, isDark, ready } = useSettings();
   const { user, loading } = useAuth();
+  React.useEffect(() => startLinkListener(), []);
   const base = isDark ? DarkTheme : DefaultTheme;
   const theme = { ...base, colors: { ...base.colors, background: colors.bg, card: colors.card, text: colors.text, border: colors.border, primary: colors.primary } };
 
@@ -55,11 +58,13 @@ function Root() {
       <StatusBar style={isDark ? 'light' : 'dark'} />
       {user ? (
         <DataProvider>
+          <SmsProvider>
           <Stack.Navigator>
             <Stack.Screen name="Main" component={Main} options={{ headerShown: false }} />
             <Stack.Screen name="TransactionForm" component={TransactionFormScreen} options={{ presentation: 'modal', title: t('addTransaction') }} />
             <Stack.Screen name="AccountForm" component={AccountFormScreen} options={{ presentation: 'modal', title: t('addAccount') }} />
           </Stack.Navigator>
+          </SmsProvider>
         </DataProvider>
       ) : (
         <Stack.Navigator screenOptions={{ headerShown: false }}>

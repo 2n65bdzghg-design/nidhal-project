@@ -42,6 +42,15 @@ const NUM = '(\\d{1,3}(?:,\\d{3})+(?:\\.\\d+)?|\\d+(?:\\.\\d+)?)';
 const DEBIT_WORDS = /purchase|paid|payment|spent|debited?|withdraw(?:n|al)?|charged|pos\b|sent|transfer(?:red)? to|شراء|مشتريات|سحب|خصم|دفع|سداد|حوالة صادرة|تحويل صادر|صرف/i;
 const CREDIT_WORDS = /credited?|received|deposit(?:ed)?|salary|refund|reversal|حوالة واردة|إيداع|ايداع|استلام|راتب|استرداد|استرجاع|إضافة|اضافة|تم تحويل مبلغ إلى حسابك/i;
 
+const OTP_WORDS = /\botp\b|one[- ]time|verification code|passcode|رمز التحقق|رمز التفعيل|كلمة المرور المؤقتة|رمز سري/i;
+
+/** True for messages that report a completed debit/credit (not OTPs, promos or chat). */
+export function looksLikeTransaction(message: string): boolean {
+  const text = normalizeDigits(message);
+  if (OTP_WORDS.test(text)) return false;
+  return DEBIT_WORDS.test(text) || CREDIT_WORDS.test(text);
+}
+
 const BALANCE_RE = new RegExp(
   `(?:available\\s+)?(?:balance|bal\\.?|avl|الرصيد(?: المتاح)?|رصيدك(?: المتاح)?|رصيد)\\s*(?:is|:|=|هو)?\\s*(?:${CUR_SRC})?\\s*${NUM}\\s*(?:${CUR_SRC})?`,
   'ig',

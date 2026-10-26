@@ -19,8 +19,17 @@ npm test              # parser unit tests
 ```
 Build store binaries with EAS: `npx eas-cli build -p ios` / `-p android`.
 
+## Automatic SMS reading
+- **Android** – a local native module (`app/modules/sms-inbox`) reads the inbox. Turn it on in
+  Settings → *Automatic SMS reading*. New bank messages are imported whenever the app opens; ones
+  matching a card's last-4 (or when you have a single account) are saved, the rest wait in
+  *Import → Needs your review*. It needs a **development/release build**, not Expo Go:
+  `cd app && npx expo run:android` (or `npx eas-cli build -p android --profile development`).
+  Google Play only allows `READ_SMS` for apps that apply for and are granted an exception, so this
+  is meant for sideloaded / personal builds.
+- **iPhone** – Apple gives apps no SMS access at all. Instead, a Shortcuts *Message* automation
+  (sender = your bank, "Run Immediately") runs *URL Encode* → *Open URLs*
+  `mywallet://import?text=<encoded text>`, which hands the message to the app. Steps are also shown in Settings.
+
 ## Notes / limits
 - Data is **local to the device** (no server). Signing out keeps data; uninstalling removes it.
-- iOS does not let any app read SMS, so import is paste-based on both platforms. Automatic
-  Android SMS reading would need a native module (`READ_SMS`) and a dev build; the
-  parser in `app/src/utils/smsParser.ts` is ready to be fed by it.

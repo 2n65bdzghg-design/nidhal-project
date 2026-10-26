@@ -18,7 +18,10 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.nidhal.mywallet"
+      "package": "com.nidhal.mywallet",
+      "permissions": [
+        "android.permission.READ_SMS"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

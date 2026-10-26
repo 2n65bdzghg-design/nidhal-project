@@ -29,3 +29,7 @@ export interface User {
   name: string;
   email: string;
 }
+
+import type { ParsedMessage } from './utils/smsParser';
+/** A message that was read automatically but could not be assigned to an account yet. */
+export type PendingItem = ParsedMessage & { id: string };
