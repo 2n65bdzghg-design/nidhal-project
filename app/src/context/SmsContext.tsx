@@ -85,7 +85,7 @@ export function SmsProvider({ children }: { children: React.ReactNode }) {
     return () => sub.remove();
   }, [supported, enabled, loaded, syncNow]);
 
-  // iOS Shortcuts automation (and any mywallet://import?text=… link) feeds messages in here.
+  // iOS Shortcuts automation (and any flusi://import?text=… link) feeds messages in here.
   useEffect(() => (loaded ? attachInbound((text) => { ingest([{ body: text }]); }) : undefined), [loaded, ingest]);
 
   return <SmsContext.Provider value={{ supported, enabled, setEnabled, syncNow, busy, lastSync }}>{children}</SmsContext.Provider>;

@@ -105,3 +105,7 @@ export function Wrap({ children }: { children: React.ReactNode }) {
   const { row } = useSettings();
   return <View style={{ flexDirection: row, flexWrap: 'wrap', gap: 8 }}>{children}</View>;
 }
+
+export function Credit() {
+  return <T size={11} muted style={{ textAlign: 'center', marginTop: 8 }}>Nidhal Alazkawi</T>;
+}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, View } from 'react-native';
-import { Button, Card, Field, Screen, Segmented, T } from '../components/ui';
+import { Button, Card, Credit, Field, Screen, Segmented, T } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 
@@ -45,6 +45,7 @@ export default function AuthScreen() {
         </Card>
         <Button kind="ghost" title={creating ? t('haveAccount') : t('noAccountYet')} onPress={() => { setCreating(!creating); setError(''); }} />
         <T size={12} muted style={{ textAlign: 'center' }}>{t('privacy')}</T>
+        <Credit />
       </KeyboardAvoidingView>
     </Screen>
   );

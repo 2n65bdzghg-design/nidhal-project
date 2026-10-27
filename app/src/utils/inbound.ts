@@ -1,7 +1,7 @@
 import { Linking } from 'react-native';
 
 /**
- * Extracts the message text from  mywallet://import?text=<url-encoded SMS>
+ * Extracts the message text from  flusi://import?text=<url-encoded SMS>
  * This is the entry point used by an iOS Shortcuts "Message" automation (iOS gives apps no SMS access).
  */
 export function parseImportUrl(url: string): string | null {

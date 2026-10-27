@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Platform, Switch, View } from 'react-native';
 import { useSms } from '../context/SmsContext';
-import { Button, Card, Field, Screen, Segmented, T } from '../components/ui';
+import { Button, Card, Credit, Field, Screen, Segmented, T } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
 import { useSettings } from '../context/SettingsContext';
@@ -72,6 +72,7 @@ export default function SettingsScreen() {
         <T size={12} muted>{t('privacy')}</T>
       </Card>
       <Button kind="danger" title={t('signOut')} onPress={signOut} />
+      <Credit />
     </Screen>
   );
 }

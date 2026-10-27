@@ -3,7 +3,7 @@ import { Lang } from './types';
 type Dict = Record<string, string>;
 
 const en: Dict = {
-  appName: 'My Wallet',
+  appName: 'Flusi',
   signIn: 'Sign in', signUp: 'Create account', signOut: 'Sign out',
   name: 'Full name', email: 'Email', password: 'Password',
   noAccountYet: "Don't have an account? Create one", haveAccount: 'Already have an account? Sign in',
@@ -32,15 +32,15 @@ const en: Dict = {
   privacy: 'Your data is stored only on this device.',
   exportData: 'Export data (CSV)', exportHint: 'Copy all transactions as CSV text', copied: 'CSV ready – shown below',
   autoRead: 'Automatic SMS reading', autoReadAndroid: 'Read new bank SMS automatically', syncNow: 'Sync now', syncing: 'Syncing…',
-  smsPermTitle: 'Allow reading SMS', smsPermMessage: 'My Wallet reads bank messages on this phone to record your transactions. Messages never leave the device.',
+  smsPermTitle: 'Allow reading SMS', smsPermMessage: 'Flusi reads bank messages on this phone to record your transactions. Messages never leave the device.',
   smsDenied: 'Permission denied – enable SMS access in system settings', smsUnsupported: 'This build cannot read SMS (use the Android development/release build, not Expo Go)',
   syncResult: 'Saved', syncQueued: 'need review', lastSync: 'Last sync',
-  iosAutoTitle: 'iPhone: automatic via Shortcuts', iosAutoSteps: "Apple does not let apps read SMS, but Shortcuts can forward bank messages:\n1. Shortcuts → Automation → New → Message.\n2. Sender: your bank. Choose “Run Immediately”.\n3. Add actions: URL Encode (input: Shortcut Input) → Open URLs with:\nmywallet://import?text=[URL Encoded Text]",
+  iosAutoTitle: 'iPhone: automatic via Shortcuts', iosAutoSteps: "Apple does not let apps read SMS, but Shortcuts can forward bank messages:\n1. Shortcuts → Automation → New → Message.\n2. Sender: your bank. Choose “Run Immediately”.\n3. Add actions: URL Encode (input: Shortcut Input) → Open URLs with:\nflusi://import?text=[URL Encoded Text]",
   needsReview: 'Needs your review', assignTo: 'Assign to account', dismiss: 'Dismiss', saveTx: 'Save',
 };
 
 const ar: Dict = {
-  appName: 'محفظتي',
+  appName: 'فلوسي',
   signIn: 'تسجيل الدخول', signUp: 'إنشاء حساب', signOut: 'تسجيل الخروج',
   name: 'الاسم الكامل', email: 'البريد الإلكتروني', password: 'كلمة المرور',
   noAccountYet: 'ليس لديك حساب؟ أنشئ حساباً', haveAccount: 'لديك حساب؟ سجّل الدخول',
@@ -69,10 +69,10 @@ const ar: Dict = {
   privacy: 'بياناتك محفوظة على هذا الجهاز فقط.',
   exportData: 'تصدير البيانات (CSV)', exportHint: 'نسخ كل العمليات كنص CSV', copied: 'ملف CSV جاهز – يظهر أدناه',
   autoRead: 'القراءة التلقائية للرسائل', autoReadAndroid: 'قراءة رسائل البنك الجديدة تلقائياً', syncNow: 'مزامنة الآن', syncing: 'جارٍ المزامنة…',
-  smsPermTitle: 'السماح بقراءة الرسائل', smsPermMessage: 'يقرأ التطبيق رسائل البنك على هذا الهاتف لتسجيل عملياتك. الرسائل لا تغادر الجهاز.',
+  smsPermTitle: 'السماح بقراءة الرسائل', smsPermMessage: 'يقرأ فلوسي رسائل البنك على هذا الهاتف لتسجيل عملياتك. الرسائل لا تغادر الجهاز.',
   smsDenied: 'تم رفض الإذن – فعّل الوصول للرسائل من إعدادات النظام', smsUnsupported: 'هذه النسخة لا تستطيع قراءة الرسائل (استخدم نسخة أندرويد المخصصة وليس Expo Go)',
   syncResult: 'تم حفظ', syncQueued: 'بحاجة لمراجعة', lastSync: 'آخر مزامنة',
-  iosAutoTitle: 'آيفون: تلقائياً عبر الاختصارات', iosAutoSteps: 'لا تسمح Apple للتطبيقات بقراءة الرسائل، لكن الاختصارات تستطيع تمريرها:\n1. الاختصارات ← الأتمتة ← جديد ← رسالة.\n2. المرسل: بنكك. اختر «تشغيل فوري».\n3. أضف الإجراءات: ترميز URL (المدخل: مدخل الاختصار) ← فتح عناوين URL بالرابط:\nmywallet://import?text=[النص المُرمَّز]',
+  iosAutoTitle: 'آيفون: تلقائياً عبر الاختصارات', iosAutoSteps: 'لا تسمح Apple للتطبيقات بقراءة الرسائل، لكن الاختصارات تستطيع تمريرها:\n1. الاختصارات ← الأتمتة ← جديد ← رسالة.\n2. المرسل: بنكك. اختر «تشغيل فوري».\n3. أضف الإجراءات: ترميز URL (المدخل: مدخل الاختصار) ← فتح عناوين URL بالرابط:\nflusi://import?text=[النص المُرمَّز]',
   needsReview: 'بحاجة لمراجعتك', assignTo: 'إسناد إلى حساب', dismiss: 'تجاهل', saveTx: 'حفظ',
 };
 

@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "My Wallet",
-    "slug": "my-wallet",
+    "name": "Flusi",
+    "slug": "flusi",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.nidhal.mywallet"
+      "bundleIdentifier": "com.nidhal.flusi"
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +18,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.nidhal.mywallet",
+      "package": "com.nidhal.flusi",
       "permissions": [
         "android.permission.READ_SMS"
       ]
@@ -26,9 +26,13 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "scheme": "mywallet",
+    "scheme": "flusi",
     "plugins": [
       "expo-secure-store"
-    ]
+    ],
+    "locales": {
+      "ar": "./locales/ar.json",
+      "en": "./locales/en.json"
+    }
   }
 }

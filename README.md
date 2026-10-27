@@ -1,4 +1,4 @@
-# My Wallet (محفظتي)
+# Flusi (فلوسي)
 
 iOS + Android money tracker built with Expo / React Native (TypeScript).
 
@@ -29,7 +29,7 @@ Build store binaries with EAS: `npx eas-cli build -p ios` / `-p android`.
   is meant for sideloaded / personal builds.
 - **iPhone** – Apple gives apps no SMS access at all. Instead, a Shortcuts *Message* automation
   (sender = your bank, "Run Immediately") runs *URL Encode* → *Open URLs*
-  `mywallet://import?text=<encoded text>`, which hands the message to the app. Steps are also shown in Settings.
+  `flusi://import?text=<encoded text>`, which hands the message to the app. Steps are also shown in Settings.
 
 ## Notes / limits
 - Data is **local to the device** (no server). Signing out keeps data; uninstalling removes it.

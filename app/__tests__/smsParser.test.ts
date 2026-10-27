@@ -76,8 +76,8 @@ describe('looksLikeTransaction', () => {
 
 describe('parseImportUrl', () => {
   it('decodes the text query param', () => {
-    expect(parseImportUrl('mywallet://import?text=Paid%20SAR%2010%20at%20Uber')).toBe('Paid SAR 10 at Uber');
-    expect(parseImportUrl('mywallet://import?x=1&text=a+b')).toBe('a b');
-    expect(parseImportUrl('mywallet://other?text=a')).toBeNull();
+    expect(parseImportUrl('flusi://import?text=Paid%20SAR%2010%20at%20Uber')).toBe('Paid SAR 10 at Uber');
+    expect(parseImportUrl('flusi://import?x=1&text=a+b')).toBe('a b');
+    expect(parseImportUrl('flusi://other?text=a')).toBeNull();
   });
 });
