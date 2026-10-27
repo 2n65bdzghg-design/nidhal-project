@@ -31,10 +31,6 @@
     "scheme": "flusi",
     "plugins": [
       "expo-secure-store"
-    ],
-    "locales": {
-      "ar": "./locales/ar.json",
-      "en": "./locales/en.json"
-    }
+    ]
   }
 }
