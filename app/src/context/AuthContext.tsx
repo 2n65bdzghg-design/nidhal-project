@@ -1,9 +1,18 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
+import * as NativeSecureStore from 'expo-secure-store';
 import * as Crypto from 'expo-crypto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User } from '../types';
 import { uid } from '../utils/format';
+
+// expo-secure-store has no web implementation; the browser build is a preview only, so fall back to AsyncStorage there.
+const SecureStore = Platform.OS === 'web'
+  ? {
+      getItemAsync: (k: string) => AsyncStorage.getItem(k),
+      setItemAsync: (k: string, v: string) => AsyncStorage.setItem(k, v),
+    }
+  : NativeSecureStore;
 
 interface Ctx {
   user: User | null;

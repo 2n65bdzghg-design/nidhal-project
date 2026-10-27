@@ -53,7 +53,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     const isDark = mode === 'system' ? system === 'dark' : mode === 'dark';
     const isRTL = lang === 'ar';
     // If the OS already flips layouts (Arabic device), a plain 'row' is already right-to-left.
-    const flip = isRTL !== I18nManager.isRTL;
+    const flip = isRTL !== !!I18nManager.isRTL;
     return {
       lang, setLang, mode, setMode, isDark, isRTL, ready,
       colors: isDark ? dark : light,
