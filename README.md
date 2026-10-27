@@ -19,6 +19,10 @@ npm test              # parser unit tests
 ```
 Build store binaries with EAS: `npx eas-cli build -p ios` / `-p android`.
 
+## Install on your phone
+- **Android (installable APK, includes SMS reading):** `cd app && npm install && npx eas-cli login && npx eas-cli build -p android --profile preview` – EAS prints a link/QR to the finished `.apk`; open it on the phone and install.
+- **iPhone:** quickest is Expo Go (`npx expo start`, scan the QR). A real installed iOS build needs a paid Apple Developer account: `npx eas-cli build -p ios --profile preview`.
+
 ## Automatic SMS reading
 - **Android** – a local native module (`app/modules/sms-inbox`) reads the inbox. Turn it on in
   Settings → *Automatic SMS reading*. New bank messages are imported whenever the app opens; ones
