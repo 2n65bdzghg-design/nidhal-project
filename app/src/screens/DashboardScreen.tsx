@@ -5,10 +5,11 @@ import { useData } from '../context/DataContext';
 import { useSettings } from '../context/SettingsContext';
 import { categoryById } from '../utils/categories';
 import { monthKey, money } from '../utils/format';
+import { budgetLines, monthKeyOf, monthStats } from '../utils/insights';
 
 export default function DashboardScreen() {
   const { t, colors, row, lang } = useSettings();
-  const { accounts, transactions, accountBalance } = useData();
+  const { accounts, transactions, accountBalance, budget } = useData();
   const [offset, setOffset] = useState(0);
 
   const month = useMemo(() => {
@@ -35,6 +36,11 @@ export default function DashboardScreen() {
   }, [transactions, accounts, key]);
 
   const currencies = Object.keys(stats);
+  const budgetCur = budget.currency || accounts[0]?.currency || '';
+  const hot = useMemo(
+    () => budgetLines(monthStats(transactions, accounts, budgetCur, monthKeyOf(new Date())), budget).filter((l) => l.pct >= 0.8).slice(0, 3),
+    [transactions, accounts, budgetCur, budget],
+  );
 
   return (
     <Screen>
@@ -45,6 +51,17 @@ export default function DashboardScreen() {
           <T size={24} color={offset === 0 ? colors.border : colors.primary}>{lang === 'ar' ? '‹' : '›'}</T>
         </Pressable>
       </View>
+
+      {offset === 0 && hot.length > 0 && (
+        <Card style={{ borderColor: hot[0].pct > 1 ? colors.danger : '#F59E0B' }}>
+          <T bold>🔔 {t('budgetAlerts')}</T>
+          {hot.map((l) => (
+            <T key={l.cat} size={13} color={l.pct > 1 ? colors.danger : undefined}>
+              {categoryById(l.cat).icon} {t('cat_' + l.cat)}: {money(l.spent, budgetCur)} / {money(l.limit, budgetCur)} ({Math.round(l.pct * 100)}%)
+            </T>
+          ))}
+        </Card>
+      )}
 
       {currencies.length === 0 && <Card><T muted>{t('noData')}</T></Card>}
 

@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Account, PendingItem, Transaction } from '../types';
+import { Account, Budget, EMPTY_BUDGET, PendingItem, Transaction } from '../types';
 import { looksLikeTransaction, parseBankMessage } from '../utils/smsParser';
 import { uid } from '../utils/format';
 import { useAuth } from './AuthContext';
@@ -16,6 +16,8 @@ interface Ctx {
   deleteTransaction: (id: string) => void;
   accountBalance: (id: string) => number;
   pending: PendingItem[];
+  budget: Budget;
+  setBudget: (patch: Partial<Budget>) => void;
   /** Parse raw bank messages; save the ones matching a card (or the only account), queue the rest for review. */
   ingest: (messages: { body: string; date?: number }[]) => { saved: number; queued: number };
   resolvePending: (id: string, accountId: string | null) => void;
@@ -27,6 +29,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [pending, setPending] = useState<PendingItem[]>([]);
+  const [budget, setBudgetState] = useState<Budget>(EMPTY_BUDGET);
   const [loaded, setLoaded] = useState(false);
   const txRef = useRef<Transaction[]>([]);
   const pendingRef = useRef<PendingItem[]>([]);
@@ -38,7 +41,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setLoaded(false);
     loadedKey.current = null;
-    if (!key) { setAccounts([]); setTransactions([]); setPending([]); return; }
+    if (!key) { setAccounts([]); setTransactions([]); setPending([]); setBudgetState(EMPTY_BUDGET); return; }
     (async () => {
       try {
         const raw = await AsyncStorage.getItem(key);
@@ -46,6 +49,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         setAccounts(d.accounts ?? []);
         setTransactions(d.transactions ?? []);
         setPending(d.pending ?? []);
+        setBudgetState({ ...EMPTY_BUDGET, ...(d.budget ?? {}) });
       } catch {}
       loadedKey.current = key;
       setLoaded(true);
@@ -55,9 +59,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   // persist after every change, but only once the user's data has been loaded (never overwrite with empty state)
   useEffect(() => {
     if (key && loadedKey.current === key) {
-      AsyncStorage.setItem(key, JSON.stringify({ accounts, transactions, pending })).catch(() => {});
+      AsyncStorage.setItem(key, JSON.stringify({ accounts, transactions, pending, budget })).catch(() => {});
     }
-  }, [accounts, transactions, pending, key]);
+  }, [accounts, transactions, pending, budget, key]);
 
   const saveAccount: Ctx['saveAccount'] = useCallback((a) => {
     setAccounts((prev) =>
@@ -121,8 +125,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const setBudget = useCallback((patch: Partial<Budget>) => setBudgetState((b) => ({ ...b, ...patch })), []);
+
   const value = useMemo<Ctx>(() => ({
-    pending, ingest, resolvePending,
+    budget, setBudget, pending, ingest, resolvePending,
     accounts, transactions, loaded, saveAccount, deleteAccount, saveTransaction, addTransactions, deleteTransaction,
     accountBalance: (id) => {
       const a = accounts.find((x) => x.id === id);
@@ -130,7 +136,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       return transactions.filter((t) => t.accountId === id)
         .reduce((s, t) => s + (t.type === 'income' ? t.amount : -t.amount), a.openingBalance);
     },
-  }), [accounts, transactions, pending, ingest, resolvePending, loaded, saveAccount, deleteAccount, saveTransaction, addTransactions, deleteTransaction]);
+  }), [accounts, transactions, pending, budget, setBudget, ingest, resolvePending, loaded, saveAccount, deleteAccount, saveTransaction, addTransactions, deleteTransaction]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 }

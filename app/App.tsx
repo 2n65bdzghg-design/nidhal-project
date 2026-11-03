@@ -18,12 +18,18 @@ import AccountsScreen from './src/screens/AccountsScreen';
 import AccountFormScreen from './src/screens/AccountFormScreen';
 import ImportScreen from './src/screens/ImportScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import BudgetScreen from './src/screens/BudgetScreen';
+import InsightsScreen from './src/screens/InsightsScreen';
+import MoreScreen from './src/screens/MoreScreen';
+import BudgetWatcher from './src/context/BudgetWatcher';
+import { useData } from './src/context/DataContext';
 
 const Stack = createNativeStackNavigator();
 const Tabs = createBottomTabNavigator();
 
 function Main() {
   const { t, colors } = useSettings();
+  const { pending } = useData();
   const icon = (e: string) => () => <Text style={{ fontSize: 20 }}>{e}</Text>;
   return (
     <Tabs.Navigator
@@ -36,9 +42,9 @@ function Main() {
     >
       <Tabs.Screen name="Home" component={DashboardScreen} options={{ title: t('tabHome'), tabBarIcon: icon('📊') }} />
       <Tabs.Screen name="Transactions" component={TransactionsScreen} options={{ title: t('tabTransactions'), tabBarIcon: icon('🧾') }} />
-      <Tabs.Screen name="Import" component={ImportScreen} options={{ title: t('tabImport'), tabBarIcon: icon('✉️') }} />
-      <Tabs.Screen name="Accounts" component={AccountsScreen} options={{ title: t('tabAccounts'), tabBarIcon: icon('💳') }} />
-      <Tabs.Screen name="Settings" component={SettingsScreen} options={{ title: t('tabSettings'), tabBarIcon: icon('⚙️') }} />
+      <Tabs.Screen name="Budget" component={BudgetScreen} options={{ title: t('tabBudget'), tabBarIcon: icon('🎯') }} />
+      <Tabs.Screen name="Insights" component={InsightsScreen} options={{ title: t('tabInsights'), tabBarIcon: icon('📈') }} />
+      <Tabs.Screen name="More" component={MoreScreen} options={{ title: t('tabMore'), tabBarIcon: icon('☰'), tabBarBadge: pending.length > 0 ? pending.length : undefined }} />
     </Tabs.Navigator>
   );
 }
@@ -59,8 +65,12 @@ function Root() {
       {user ? (
         <DataProvider>
           <SmsProvider>
+          <BudgetWatcher />
           <Stack.Navigator>
             <Stack.Screen name="Main" component={Main} options={{ headerShown: false }} />
+            <Stack.Screen name="Import" component={ImportScreen} options={{ title: t('importTitle') }} />
+            <Stack.Screen name="Accounts" component={AccountsScreen} options={{ title: t('accountsAndCards') }} />
+            <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: t('settings') }} />
             <Stack.Screen name="TransactionForm" component={TransactionFormScreen} options={{ presentation: 'modal', title: t('addTransaction') }} />
             <Stack.Screen name="AccountForm" component={AccountFormScreen} options={{ presentation: 'modal', title: t('addAccount') }} />
           </Stack.Navigator>

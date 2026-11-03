@@ -18,6 +18,7 @@ export const CATEGORIES: Category[] = [
   { id: 'entertainment', icon: '🎬', color: '#8B5CF6', keywords: ['netflix', 'spotify', 'cinema', 'vox', 'shahid', 'playstation', 'steam', 'youtube', 'نتفلكس', 'سبوتيفاي', 'سينما', 'شاهد', 'بلايستيشن'] },
   { id: 'travel', icon: '✈️', color: '#0EA5E9', keywords: ['airline', 'airways', 'flydubai', 'flynas', 'hotel', 'booking', 'airbnb', 'saudia', 'طيران', 'فندق', 'الخطوط', 'حجز', 'فلاي'] },
   { id: 'education', icon: '🎓', color: '#A855F7', keywords: ['school', 'university', 'course', 'udemy', 'tuition', 'مدرسة', 'جامعة', 'دورة', 'رسوم دراسية'] },
+  { id: 'investment', icon: '📈', color: '#0891B2', keywords: ['invest', 'brokerage', 'stocks', 'mutual fund', 'etf', 'sarwa', 'tadawul', 'binance', 'استثمار', 'أسهم', 'اسهم', 'صندوق', 'سروة', 'تداول'] },
   { id: 'transfer', icon: '🔁', color: '#64748B', keywords: ['transfer', 'sent to', 'iban', 'atm', 'cash withdrawal', 'withdrawal', 'حوالة', 'تحويل', 'سحب نقدي', 'صراف'] },
   { id: 'salary', icon: '💰', color: '#22C55E', income: true, keywords: ['salary', 'payroll', 'wage', 'راتب', 'الراتب'] },
   { id: 'otherIncome', icon: '📥', color: '#84CC16', income: true, keywords: ['refund', 'deposit', 'cashback', 'received', 'استرداد', 'إيداع', 'ايداع', 'استرجاع'] },

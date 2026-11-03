@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useContext } from 'react';
+import { HeaderHeightContext } from '@react-navigation/elements';
 import { Pressable, ScrollView, StyleProp, Text, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSettings } from '../context/SettingsContext';
 
 export function Screen({ children, scroll = true, padded = true }: { children: React.ReactNode; scroll?: boolean; padded?: boolean }) {
   const { colors } = useSettings();
+  // a visible navigation header already clears the top safe area
+  const hasHeader = useContext(HeaderHeightContext) !== undefined;
   const pad = padded ? { padding: 16, gap: 14 } : undefined;
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} style={{ flex: 1, backgroundColor: colors.bg }}>
+    <SafeAreaView edges={hasHeader ? ['left', 'right'] : ['top', 'left', 'right']} style={{ flex: 1, backgroundColor: colors.bg }}>
       {scroll ? (
         <ScrollView contentContainerStyle={pad} keyboardShouldPersistTaps="handled">{children}</ScrollView>
       ) : (

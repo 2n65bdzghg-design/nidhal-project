@@ -1,9 +1,10 @@
 import { Lang } from './types';
+import { budgetAr, budgetEn } from './i18n_budget';
 
 type Dict = Record<string, string>;
 
 const en: Dict = {
-  appName: 'Flusi',
+  lang: 'en', appName: 'Flusi',
   signIn: 'Sign in', signUp: 'Create account', signOut: 'Sign out',
   name: 'Full name', email: 'Email', password: 'Password',
   noAccountYet: "Don't have an account? Create one", haveAccount: 'Already have an account? Sign in',
@@ -40,7 +41,7 @@ const en: Dict = {
 };
 
 const ar: Dict = {
-  appName: 'فلوسي',
+  lang: 'ar', appName: 'فلوسي',
   signIn: 'تسجيل الدخول', signUp: 'إنشاء حساب', signOut: 'تسجيل الخروج',
   name: 'الاسم الكامل', email: 'البريد الإلكتروني', password: 'كلمة المرور',
   noAccountYet: 'ليس لديك حساب؟ أنشئ حساباً', haveAccount: 'لديك حساب؟ سجّل الدخول',
@@ -76,5 +77,9 @@ const ar: Dict = {
   needsReview: 'بحاجة لمراجعتك', assignTo: 'إسناد إلى حساب', dismiss: 'تجاهل', saveTx: 'حفظ',
 };
 
-export const dictionaries: Record<Lang, Dict> = { en, ar };
-export const translate = (lang: Lang, key: string): string => dictionaries[lang][key] ?? dictionaries.en[key] ?? key;
+export const dictionaries: Record<Lang, Dict> = { en: { ...en, ...budgetEn }, ar: { ...ar, ...budgetAr } };
+export type Params = Record<string, string | number>;
+export const translate = (lang: Lang, key: string, params?: Params): string => {
+  const text = dictionaries[lang][key] ?? dictionaries.en[key] ?? key;
+  return params ? text.replace(/\{(\w+)\}/g, (_, k) => (k in params ? String(params[k]) : `{${k}}`)) : text;
+};

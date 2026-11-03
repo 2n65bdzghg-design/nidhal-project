@@ -3,14 +3,14 @@ import { I18nManager, useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getLocales } from 'expo-localization';
 import { Lang, ThemeMode } from '../types';
-import { translate } from '../i18n';
+import { Params, translate } from '../i18n';
 import { dark, light, Palette } from '../theme';
 
 interface Ctx {
   lang: Lang; setLang: (l: Lang) => void;
   mode: ThemeMode; setMode: (m: ThemeMode) => void;
   colors: Palette; isDark: boolean; isRTL: boolean;
-  t: (key: string) => string;
+  t: (key: string, params?: Params) => string;
   /** flexDirection for a horizontal row that must follow the app language, not the OS layout direction */
   row: 'row' | 'row-reverse';
   align: 'left' | 'right';
@@ -57,7 +57,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     return {
       lang, setLang, mode, setMode, isDark, isRTL, ready,
       colors: isDark ? dark : light,
-      t: (key) => translate(lang, key),
+      t: (key, params) => translate(lang, key, params),
       row: flip ? 'row-reverse' : 'row',
       align: isRTL ? 'right' : 'left',
     };

@@ -24,6 +24,23 @@ export interface Transaction {
   raw?: string;
 }
 
+export interface Budget {
+  /** currency the budget is measured in; only accounts in this currency count. '' = first account's currency */
+  currency: string;
+  /** monthly spending limit per expense category id (operating budget) */
+  limits: Record<string, number>;
+  /** monthly amount to put into investments (investment budget) */
+  investment: number;
+  /** notify when a category reaches 80% / 100% of its limit */
+  alerts: boolean;
+  /** weekly reminder to review the budget */
+  weekly: boolean;
+  /** "<month>:<category>:<level>" keys already notified, so each alert fires once */
+  notified: string[];
+}
+
+export const EMPTY_BUDGET: Budget = { currency: '', limits: {}, investment: 0, alerts: false, weekly: false, notified: [] };
+
 export interface User {
   id: string;
   name: string;

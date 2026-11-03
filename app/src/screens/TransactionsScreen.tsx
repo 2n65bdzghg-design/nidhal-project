@@ -27,6 +27,7 @@ export default function TransactionsScreen() {
       <View style={{ flexDirection: row, gap: 8, flexWrap: 'wrap' }}>
         <Chip label={t('all')} active={acc === 'all'} onPress={() => setAcc('all')} />
         {accounts.map((a) => <Chip key={a.id} label={a.name} active={acc === a.id} onPress={() => setAcc(a.id)} />)}
+        <Chip label={'✉️ ' + t('tabImport')} active={false} onPress={() => nav.navigate('Import')} />
       </View>
       <Field label="" placeholder={t('search')} value={q} onChangeText={setQ} />
       <FlatList
