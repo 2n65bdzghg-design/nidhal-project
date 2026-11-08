@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import { HeaderHeightContext } from '@react-navigation/elements';
+import { useNavigation } from '@react-navigation/native';
 import { Pressable, ScrollView, StyleProp, Text, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSettings } from '../context/SettingsContext';
@@ -111,4 +112,21 @@ export function Wrap({ children }: { children: React.ReactNode }) {
 
 export function Credit() {
   return <T size={11} muted style={{ textAlign: 'center', marginTop: 8 }}>Nidhal Alazkawi</T>;
+}
+
+/** Visible way back from the screens that live under "More". The bottom tab bar stays available too. */
+export function BackBar({ to = 'More' }: { to?: string }) {
+  const { t, colors, row, lang } = useSettings();
+  const nav = useNavigation<any>();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={() => nav.navigate(to)}
+      hitSlop={10}
+      style={{ flexDirection: row, alignItems: 'center', gap: 6, alignSelf: lang === 'ar' ? 'flex-end' : 'flex-start', paddingVertical: 4 }}
+    >
+      <Text style={{ color: colors.primary, fontSize: 26, lineHeight: 28 }}>{lang === 'ar' ? '›' : '‹'}</Text>
+      <Text style={{ color: colors.primary, fontSize: 16, fontWeight: '600' }}>{t('tabMore')}</Text>
+    </Pressable>
+  );
 }

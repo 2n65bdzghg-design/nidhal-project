@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { Button, Card, Screen, T } from '../components/ui';
+import { Button, Card, BackBar, Screen, T } from '../components/ui';
 import { useData } from '../context/DataContext';
 import { useSettings } from '../context/SettingsContext';
 import { money } from '../utils/format';
@@ -12,6 +12,7 @@ export default function AccountsScreen() {
   const nav = useNavigation<any>();
   return (
     <Screen>
+      <BackBar />
       <T size={22} bold>{t('accounts')}</T>
       {accounts.length === 0 && <Card><T muted>{t('needAccount')}</T></Card>}
       {accounts.map((a) => (

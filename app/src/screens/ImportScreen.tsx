@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Pressable, View } from 'react-native';
-import { Button, Card, Chip, Field, Screen, T, Wrap } from '../components/ui';
+import { Button, Card, Chip, Field, BackBar, Screen, T, Wrap } from '../components/ui';
 import { useData } from '../context/DataContext';
 import { useSettings } from '../context/SettingsContext';
 import { categoryById } from '../utils/categories';
@@ -43,10 +43,11 @@ export default function ImportScreen() {
 
   const patch = (i: number, v: Partial<Row>) => setRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...v } : r)));
 
-  if (accounts.length === 0) return <Screen><T size={22} bold>{t('importTitle')}</T><Card><T muted>{t('needAccount')}</T></Card></Screen>;
+  if (accounts.length === 0) return <Screen><BackBar /><T size={22} bold>{t('importTitle')}</T><Card><T muted>{t('needAccount')}</T></Card></Screen>;
 
   return (
     <Screen>
+      <BackBar />
       <T size={22} bold>{t('importTitle')}</T>
       {pending.length > 0 && (
         <>

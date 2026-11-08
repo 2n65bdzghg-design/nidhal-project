@@ -1,4 +1,5 @@
 export const budgetEn: Record<string, string> = {
+  webSmsNote: 'Web version: copy a bank message (press and hold it, then Copy), open Import and paste it. Automatic reading needs the Android app or a native iPhone app.',
   tabBudget: 'Budget', tabInsights: 'Insights', tabMore: 'More',
   cat_investment: 'Investments',
   more: 'More', accountsAndCards: 'Accounts & cards', settings: 'Settings',
@@ -40,6 +41,7 @@ export const budgetEn: Record<string, string> = {
 };
 
 export const budgetAr: Record<string, string> = {
+  webSmsNote: 'النسخة على الويب: انسخ رسالة البنك (اضغط مطولاً ثم نسخ)، افتح استيراد والصقها. القراءة التلقائية تحتاج تطبيق أندرويد أو تطبيق آيفون أصلي.',
   tabBudget: 'الميزانية', tabInsights: 'تحليلات', tabMore: 'المزيد',
   cat_investment: 'استثمارات',
   more: 'المزيد', accountsAndCards: 'الحسابات والبطاقات', settings: 'الإعدادات',

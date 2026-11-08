@@ -27,6 +27,8 @@ import { useData } from './src/context/DataContext';
 const Stack = createNativeStackNavigator();
 const Tabs = createBottomTabNavigator();
 
+const hidden = { tabBarItemStyle: { display: 'none' as const } };
+
 function Main() {
   const { t, colors } = useSettings();
   const { pending } = useData();
@@ -45,6 +47,10 @@ function Main() {
       <Tabs.Screen name="Budget" component={BudgetScreen} options={{ title: t('tabBudget'), tabBarIcon: icon('🎯') }} />
       <Tabs.Screen name="Insights" component={InsightsScreen} options={{ title: t('tabInsights'), tabBarIcon: icon('📈') }} />
       <Tabs.Screen name="More" component={MoreScreen} options={{ title: t('tabMore'), tabBarIcon: icon('☰'), tabBarBadge: pending.length > 0 ? pending.length : undefined }} />
+      {/* reachable from "More" and the Transactions screen; hidden from the bar so the tab bar stays on screen */}
+      <Tabs.Screen name="Import" component={ImportScreen} options={hidden} />
+      <Tabs.Screen name="Accounts" component={AccountsScreen} options={hidden} />
+      <Tabs.Screen name="Settings" component={SettingsScreen} options={hidden} />
     </Tabs.Navigator>
   );
 }
@@ -68,9 +74,6 @@ function Root() {
           <BudgetWatcher />
           <Stack.Navigator>
             <Stack.Screen name="Main" component={Main} options={{ headerShown: false }} />
-            <Stack.Screen name="Import" component={ImportScreen} options={{ title: t('importTitle') }} />
-            <Stack.Screen name="Accounts" component={AccountsScreen} options={{ title: t('accountsAndCards') }} />
-            <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: t('settings') }} />
             <Stack.Screen name="TransactionForm" component={TransactionFormScreen} options={{ presentation: 'modal', title: t('addTransaction') }} />
             <Stack.Screen name="AccountForm" component={AccountFormScreen} options={{ presentation: 'modal', title: t('addAccount') }} />
           </Stack.Navigator>
