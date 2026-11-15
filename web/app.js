@@ -31,8 +31,8 @@
   let pending = []; let pendingInfo = '';
   let authMode = 'in'; let authErr = ''; let authUser = '';
 
-  const defaults = () => ({ txs: [], reminders: [], settings: { income: 0, split: { op: 70, inv: 20, sav: 10 }, rules: {} } });
-  function loadData() { D = store.get('nw.data.' + user, null) || defaults(); D.settings = Object.assign(defaults().settings, D.settings); D.settings.split = Object.assign({ op: 70, inv: 20, sav: 10 }, D.settings.split); }
+  const defaults = () => ({ txs: [], reminders: [], settings: { income: 0, split: { op: 70, inv: 20, sav: 10 }, rules: {}, autosave: true, captureKey: '' } });
+  function loadData() { D = store.get('nw.data.' + user, null) || defaults(); D.settings = Object.assign(defaults().settings, D.settings); D.settings.split = Object.assign({ op: 70, inv: 20, sav: 10 }, D.settings.split); if (!D.settings.captureKey) { D.settings.captureKey = uid() + uid(); save(); } }
   function save() { store.set('nw.data.' + user, D); }
 
   /* ---------------- auth (local) ---------------- */
@@ -63,7 +63,7 @@
       if (!u || (await hashPw(pw, u.salt)) !== u.hash) authErr = 'Wrong username or password.';
     }
     if (authErr) return render();
-    user = name; store.set('nw.session', user); loadData(); view = 'dashboard'; render();
+    user = name; store.set('nw.session', user); loadData(); view = 'dashboard'; render(); handleIncoming();
     if (!D.txs.length) toast('Welcome! Add your first bank messages in the “Add messages” tab.');
   }
   function signOut() { user = null; D = null; store.del('nw.session'); pending = []; render(); }
@@ -240,7 +240,7 @@
       <details class="small mute" style="margin-top:6px"><summary>Original message</summary>${esc(p.raw)}</details></div>`;
     }).join('');
     const nsel = pending.filter((p) => p.sel).length;
-    return `<div class="grid g2">
+    return `${captureCard()}<div class="grid g2">
       <div class="card"><h2>Add bank messages</h2>
         <p class="small mute" style="margin-top:0">Paste one or many bank SMS / app notifications (separate with a blank line, or one per line). English and Arabic messages from Bank Muscat, NBO, Sohar International, BankDhofar, Oman Arab Bank, Ahli, Bank Nizwa, Alizz, HSBC and others are understood. OTP and promo messages are ignored.</p>
         <textarea id="smsText" placeholder="Your Debit Card ending 1234 was used for OMR 5.500 at LULU HYPERMARKET on 10/11/2026 12:30. Avl Bal OMR 120.500"></textarea>
@@ -392,6 +392,52 @@
     return { parsed, skipped };
   }
 
+
+  /* ---------------- automatic capture (link / share / clipboard) ---------------- */
+  function readIncomingFromUrl() {
+    try {
+      const u = new URL(location.href), sp = u.searchParams, hp = new URLSearchParams(u.hash.replace(/^#/, ''));
+      const g = (k) => sp.get(k) || hp.get(k);
+      const text = g('sms') || g('body') || g('text') || g('title');
+      if (!text) return;
+      store.set('nw.incoming', { text: String(text).slice(0, 6000), key: g('k') || '', t: Date.now() });
+      history.replaceState(null, '', location.pathname); // remove the message from the address bar
+    } catch (e) {}
+  }
+  function processText(text, trusted) {
+    const r = parseInput(text);
+    if (!r.parsed.length) { toast('No transaction found in that message.'); return; }
+    const fresh = r.parsed.filter((p) => !p.dup);
+    if (!fresh.length) { toast('That message was already noted.'); return; }
+    if (trusted && D.settings.autosave) {
+      const n = addTxs(fresh); const unk = fresh.filter((p) => !p.known).length;
+      const d = new Date(fresh[0].date); ym = { y: d.getFullYear(), m: d.getMonth() }; view = 'dashboard'; render();
+      toast(`Noted ${n} transaction${n === 1 ? '' : 's'}: ${fresh.map((p) => (p.type === 'income' ? '+' : '−') + fmt(p.amount) + ' ' + p.merchant).join(', ').slice(0, 90)}${unk ? ' – check category in History' : ''}`);
+    } else { pending = r.parsed; pendingInfo = `Found ${fresh.length} new transaction${fresh.length === 1 ? '' : 's'}. Review and save.`; view = 'import'; render(); }
+  }
+  function handleIncoming() {
+    if (!user || !D) return;
+    const inc = store.get('nw.incoming', null); if (!inc) return; store.del('nw.incoming');
+    if (Date.now() - inc.t > 10 * 60 * 1000) return;
+    processText(inc.text, inc.key && inc.key === D.settings.captureKey); // only a link carrying your private key saves without review
+  }
+  function captureLink() { return location.origin + location.pathname.replace(/index\.html$/, '') + '?k=' + D.settings.captureKey + '&sms='; }
+  function captureCard() {
+    const link = captureLink(), web = location.protocol.startsWith('http');
+    return `<div class="card" style="margin-bottom:14px"><h2>⚡ Note messages automatically</h2>
+      <p class="small mute" style="margin-top:0">Browsers can’t read your inbox, so these routes send each bank message to the app for you – no copying.</p>
+      <div class="row wrapf"><button class="btn pri" data-act="clip">📋 Import from clipboard</button><label class="row small" style="margin:0;font-weight:500"><input type="checkbox" style="width:auto" data-bind="autosave" ${D.settings.autosave ? 'checked' : ''}> Save automatically (no review) when a message arrives through my private link</label></div>
+      <details style="margin-top:12px"><summary><b>iPhone – Shortcuts automation (fully automatic)</b></summary><ol class="small" style="padding-left:18px;display:grid;gap:5px">
+        <li>Shortcuts → Automation → New → <b>Message</b> → Sender: your bank (e.g. BankMuscat) → Run Immediately.</li>
+        <li>Add action <b>URL Encode</b> on <i>Shortcut Input</i> (the message).</li>
+        <li>Add action <b>Open URLs</b> with: <code>${esc(link)}</code> followed by the encoded text.</li></ol></details>
+      <details style="margin-top:8px"><summary><b>Android – MacroDroid / Tasker / Automate (fully automatic)</b></summary><ol class="small" style="padding-left:18px;display:grid;gap:5px">
+        <li>Trigger: <b>SMS received</b> from your bank’s sender name.</li>
+        <li>Action: <b>Open website / Launch URL</b> = <code>${esc(link)}</code> + URL-encoded message text (MacroDroid: <code>{sms_message}</code>, Tasker: <code>%SMSRB</code>).</li></ol></details>
+      <details style="margin-top:8px"><summary><b>Android – Share to the app (one tap)</b></summary><p class="small">Open this site in Chrome → menu → <b>Install app</b>. Then in Messages long-press a bank SMS → Share → <b>Nidhal Wallet</b>. It opens and reviews the message.</p></details>
+      <p class="small mute" style="margin-bottom:0">Your private link: <input readonly value="${esc(link)}" onfocus="this.select()" aria-label="Private capture link" style="font-size:12px;margin-top:4px">${web ? '' : '<span class="neg">Open the app from its web address (https://…) for these links to work; a local file can’t be called by your phone.</span>'}</p></div>`;
+  }
+
   /* ---------------- sample data ---------------- */
   function sampleData() {
     let seed = 7; const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
@@ -468,6 +514,7 @@
         render(); break;
       }
       case 'sample': { const n = addTxs(sampleData()); toast(`Loaded ${n} sample transactions. Delete them any time in Settings.`); view = 'dashboard'; ym = { y: now0.getFullYear(), m: now0.getMonth() }; render(); break; }
+      case 'clip': (navigator.clipboard && navigator.clipboard.readText ? navigator.clipboard.readText() : Promise.reject()).then((t) => { if (!t || !t.trim()) return toast('Clipboard is empty – copy a bank message first.'); processText(t, true); }).catch(() => toast('Can’t read the clipboard here – paste into the box below instead.')); break;
       case 'manual': txDialog(null); break;
       case 'edit': txDialog(D.txs.find((t) => t.id === el.dataset.id)); break;
       case 'del': confirmDlg('Delete this transaction?', 'delok', `data-id="${el.dataset.id}"`); break;
@@ -524,6 +571,7 @@
     const b = el.dataset && el.dataset.bind; if (!b) return;
     if (b === 'sel') pending[+el.dataset.i].sel = el.checked, render();
     else if (b === 'category') { pending[+el.dataset.i].category = el.value; pending[+el.dataset.i].known = true; render(); }
+    else if (b === 'autosave') { D.settings.autosave = el.checked; save(); }
     else if (b === 'hyear') { histYear = +el.value; render(); }
     else if (b === 'hmonth') { hf.month = el.value; hf.limit = 60; render(); }
     else if (b === 'hcat') { hf.cat = el.value; hf.limit = 60; render(); }
@@ -546,4 +594,7 @@
   if (user && !store.get('nw.users', {})[user]) user = null;
   if (user) { loadData(); setTimeout(notifyDue, 1500); }
   render();
+  readIncomingFromUrl();
+  handleIncoming();
+  if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 })();
