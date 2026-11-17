@@ -24,6 +24,14 @@ for (const [msg, exp] of cases) {
   for (const k of Object.keys(exp)) assert.strictEqual(r[k], exp[k], `${k} in "${msg}" -> got ${JSON.stringify(r[k])} (${JSON.stringify(r)})`);
   ok++;
 }
+// dates, incl. the stamps iPhone Shortcuts writes
+const D = (s) => { const d = O.parseDate(s); return d ? [d.getFullYear(), d.getMonth() + 1, d.getDate(), d.getHours(), d.getMinutes()].join('-') : null; };
+assert.strictEqual(D('16 Nov 2026 at 3:06\u202fPM'), '2026-11-16-15-6');
+assert.strictEqual(D('Nov 16, 2026 at 3:06 PM'), '2026-11-16-15-6');
+assert.strictEqual(D('2026-11-16T15:06:47+04:00'), '2026-11-16-15-6');
+assert.strictEqual(D('16/11/2026, 12:05 AM'), '2026-11-16-0-5');
+assert.strictEqual(D('١٦/١١/٢٠٢٦ ٣:٠٦ م'), '2026-11-16-15-6');
+assert.strictEqual(D('no date here'), null);
 const many = O.parseMany('OMR 1.000 purchase at KFC\nOMR 2.000 purchase at Subway', now);
 assert.strictEqual(many.parsed.length, 2);
 console.log(`${ok}/${cases.length} parser cases passed, ${O.MERCHANTS.length} merchant entries`);

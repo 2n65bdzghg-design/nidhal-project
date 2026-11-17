@@ -178,7 +178,7 @@
 
   /* ---------------- views ---------------- */
   function monthBar(withLabel) {
-    return `<div class="monthbar"><button class="btn sm" data-act="mprev" aria-label="Previous month">‹</button><h1>${MONTHS[ym.m]} ${ym.y}</h1><button class="btn sm" data-act="mnext" aria-label="Next month">›</button><button class="btn sm" data-act="mnow">This month</button></div>`;
+    return `<div class="monthbar"><button class="btn sm" data-act="mprev" aria-label="Previous month">‹</button><h1>${MONTHS[ym.m]} ${ym.y}</h1><button class="btn sm" data-act="mnext" aria-label="Next month">›</button><button class="btn sm" data-act="mnow">This month</button>${withLabel ? '<span class="sp"></span>' + importBtn('sm pri') : ''}</div>`;
   }
   function txRow(t, actions) {
     const c = cat(t.category);
@@ -198,7 +198,7 @@
     const topM = Object.entries(st.merchants).sort((a, b) => b[1].v - a[1].v).slice(0, 5);
     const recent = D.txs.filter((t) => inMonth(t, ym.y, ym.m)).sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 6);
     const rate = B.basis.v > 0 ? pct(st.income - st.spent, st.income || B.basis.v) : 0;
-    return `${monthBar()}
+    return `${monthBar(true)}
     ${!D.txs.length ? `<div class="card" style="margin-bottom:14px"><h2>👋 Welcome</h2><p>Your dashboard is empty. Paste your bank SMS messages to see where your money goes.</p><button class="btn pri" data-act="go" data-v="import">Add messages</button> <button class="btn" data-act="sample">Try with sample data</button></div>` : ''}
     <div class="grid g4" style="margin-bottom:14px">
       <div class="card kpi"><div class="label">Income</div><div class="val num pos">${fmt(st.income)}</div><div class="sub">OMR received</div></div>
@@ -421,21 +421,59 @@
     if (Date.now() - inc.t > 10 * 60 * 1000) return;
     processText(inc.text, inc.key && inc.key === D.settings.captureKey); // only a link carrying your private key saves without review
   }
+  /* Quiet capture: the phone appends each bank SMS to a text file ("NEWSMS <date> :: <message>"); the app reads the file when asked. */
+  const CAP_RE = /^[ \t]*(?:NEW ?SMS|##SMS)\b[ \t]*/im;
+  const isCaptureFile = (text) => CAP_RE.test(text);
+  const strHash = (s) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36) + s.length.toString(36); };
+  function captureEntries(text) {
+    return text.replace(/\r\n?/g, '\n').split(new RegExp(CAP_RE.source, 'img')).slice(1).map((chunk) => {
+      let stamp = '', body = chunk; const nl = chunk.indexOf('\n'), first = nl === -1 ? chunk : chunk.slice(0, nl);
+      const sep = first.match(/\s*(?:::|##)\s*/);
+      if (sep && sep.index < 80) { stamp = chunk.slice(0, sep.index); body = chunk.slice(sep.index + sep[0].length); }
+      else if (nl !== -1 && nl < 80 && O.parseDate(first) && !O.looksLikeTransaction(first)) { stamp = first; body = chunk.slice(nl + 1); }
+      return { stamp: stamp.trim(), body: body.trim() };
+    }).filter((e) => e.body);
+  }
+  function processCapture(text, fileName) {
+    const entries = captureEntries(text), seen = new Set(D.seen || []), counts = {}, fresh = [], ids = [];
+    let already = 0, other = 0;
+    entries.forEach((e) => {
+      let id = strHash(e.stamp + '\n' + e.body); counts[id] = (counts[id] || 0) + 1; if (counts[id] > 1) id += '#' + counts[id];
+      if (seen.has(id)) { already++; return; }
+      ids.push(id);
+      const p = O.parseMessage(e.body, O.parseDate(e.stamp) || new Date(), D.settings.rules);
+      if (p) fresh.push(p); else other++;
+    });
+    const name = fileName ? fileName + ': ' : '';
+    if (!entries.length) return toast(name + 'no saved messages found in that file.');
+    if (!fresh.length) { ids.forEach((i) => seen.add(i)); D.seen = [...seen].slice(-8000); save(); return toast(`${name}nothing new${already ? ` – ${already} message${already === 1 ? '' : 's'} already noted` : ''}${other ? `, ${other} not a transaction` : ''}.`); }
+    if (D.settings.autosave) {
+      ids.forEach((i) => seen.add(i)); D.seen = [...seen].slice(-8000);
+      const n = addTxs(fresh), unk = fresh.filter((p) => !p.known).length;
+      const d = new Date(fresh.slice().sort((x, y) => new Date(y.date) - new Date(x.date))[0].date); ym = { y: d.getFullYear(), m: d.getMonth() }; view = 'dashboard'; render();
+      toast(`Noted ${n} new transaction${n === 1 ? '' : 's'}${already ? `, ${already} already noted` : ''}${unk ? ` – ${unk} need a category (History)` : ''}.`);
+    } else {
+      const have = new Set(D.txs.map(hashOf));
+      fresh.forEach((p) => { p.dup = have.has(hashOf(toTx(p))); p.sel = !p.dup; p.autoCat = p.category; });
+      pending = fresh; pendingInfo = `${name}found ${fresh.length} new transaction${fresh.length === 1 ? '' : 's'}. Review and save.`; view = 'import'; render();
+    }
+  }
+  const importBtn = (cls) => `<label class="btn ${cls || ''}" style="margin:0">📥 Import new messages<input class="capFile" type="file" accept=".txt,text/plain" hidden></label>`;
   function captureLink() { return location.origin + location.pathname.replace(/index\.html$/, '') + '?k=' + D.settings.captureKey + '&sms='; }
   function captureCard() {
     const link = captureLink(), web = location.protocol.startsWith('http');
     return `<div class="card" style="margin-bottom:14px"><h2>⚡ Note messages automatically</h2>
-      <p class="small mute" style="margin-top:0">Browsers can’t read your inbox, so these routes send each bank message to the app for you – no copying.</p>
-      <div class="row wrapf"><button class="btn pri" data-act="clip">📋 Import from clipboard</button><label class="row small" style="margin:0;font-weight:500"><input type="checkbox" style="width:auto" data-bind="autosave" ${D.settings.autosave ? 'checked' : ''}> Save automatically (no review) when a message arrives through my private link</label></div>
-      <details style="margin-top:12px"><summary><b>iPhone – Shortcuts automation (fully automatic)</b></summary><ol class="small" style="padding-left:18px;display:grid;gap:5px">
-        <li>Shortcuts → Automation → New → <b>Message</b> → Sender: your bank (e.g. BankMuscat) → Run Immediately.</li>
-        <li>Add action <b>URL Encode</b> on <i>Shortcut Input</i> (the message).</li>
-        <li>Add action <b>Open URLs</b> with: <code>${esc(link)}</code> followed by the encoded text.</li></ol></details>
-      <details style="margin-top:8px"><summary><b>Android – MacroDroid / Tasker / Automate (fully automatic)</b></summary><ol class="small" style="padding-left:18px;display:grid;gap:5px">
-        <li>Trigger: <b>SMS received</b> from your bank’s sender name.</li>
-        <li>Action: <b>Open website / Launch URL</b> = <code>${esc(link)}</code> + URL-encoded message text (MacroDroid: <code>{sms_message}</code>, Tasker: <code>%SMSRB</code>).</li></ol></details>
-      <details style="margin-top:8px"><summary><b>Android – Share to the app (one tap)</b></summary><p class="small">Open this site in Chrome → menu → <b>Install app</b>. Then in Messages long-press a bank SMS → Share → <b>Nidhal Wallet</b>. It opens and reviews the message.</p></details>
-      <p class="small mute" style="margin-bottom:0">Your private link: <input readonly value="${esc(link)}" onfocus="this.select()" aria-label="Private capture link" style="font-size:12px;margin-top:4px">${web ? '' : '<span class="neg">Open the app from its web address (https://…) for these links to work; a local file can’t be called by your phone.</span>'}</p></div>`;
+      <p class="small mute" style="margin-top:0">Your phone quietly saves every bank message to a file – nothing opens. When you open the app, tap the button and everything new is noted.</p>
+      <div class="row wrapf">${importBtn('pri')}<button class="btn" data-act="clip">📋 Import from clipboard</button></div>
+      <label class="row small" style="margin:10px 0 0;font-weight:500"><input type="checkbox" style="width:auto" data-bind="autosave" ${D.settings.autosave ? 'checked' : ''}> Save straight away, without a review step</label>
+      <details style="margin-top:12px" open><summary><b>iPhone – set up once (quiet, nothing opens)</b></summary><ol class="small" style="padding-left:18px;display:grid;gap:5px">
+        <li>Shortcuts → Automation → new → <b>Message</b> → Message contains <code>OMR</code> → Run Immediately.</li>
+        <li>Add one action: <b>Append to Text File</b>.</li>
+        <li>In its text box type <code>NEWSMS</code>, a space, then pick the variable <b>Current Date</b>, type <code> :: </code>, then pick <b>Shortcut Input</b>.</li>
+        <li>File path: <code>BankSMS.txt</code>. Leave “Make New Line” on.</li>
+        <li>Here in the app tap <b>Import new messages</b> and choose <b>BankSMS.txt</b> (Files → iCloud Drive → Shortcuts). Messages already noted are skipped.</li></ol></details>
+      <details style="margin-top:8px"><summary><b>Android – MacroDroid / Tasker</b></summary><p class="small">Trigger: SMS received from your bank. Action: append <code>NEWSMS {date} :: {sms_message}</code> as a new line to a text file, then import that file here. Or install this site from Chrome and Share a message to “Nidhal Wallet”.</p></details>
+      <details style="margin-top:8px"><summary><b>Other way: private link (opens the app for every message)</b></summary><p class="small">An automation can open this link followed by the URL-encoded message; it is saved at once, but the browser comes to the front each time.<input readonly value="${esc(link)}" onfocus="this.select()" aria-label="Private capture link" style="font-size:12px;margin-top:4px">${web ? '' : '<span class="neg">Works only from the app’s web address (https://…).</span>'}</p></details></div>`;
   }
 
   /* ---------------- sample data ---------------- */
@@ -566,7 +604,9 @@
     if (b === 'income') { D.settings.income = Math.max(0, parseFloat(el.value) || 0); save(); }
   });
   document.addEventListener('change', (e) => {
-    const el = e.target; if (el.id === 'smsFile') return readFile(el.files[0], (txt) => { $('#smsText').value = txt.length > 400000 ? txt.slice(0, 400000) : txt; const r = parseInput(txt); pending = r.parsed; pendingInfo = `Read ${el.files[0].name}: found ${r.parsed.length} transaction${r.parsed.length === 1 ? '' : 's'}, ignored ${r.skipped} other message${r.skipped === 1 ? '' : 's'}.`; render(); });
+    const el = e.target;
+    if (el.classList && el.classList.contains('capFile')) return readFile(el.files[0], (txt) => { const name = el.files[0].name; el.value = ''; if (isCaptureFile(txt)) return processCapture(txt, name); const r = parseInput(txt); if (!r.parsed.length) return toast(name + ': no bank messages found in that file.'); pending = r.parsed; pendingInfo = `Read ${name}: found ${r.parsed.length} transaction${r.parsed.length === 1 ? '' : 's'}. Review and save.`; view = 'import'; render(); });
+    if (el.id === 'smsFile') return readFile(el.files[0], (txt) => { if (isCaptureFile(txt)) { const name = el.files[0].name; el.value = ''; return processCapture(txt, name); } $('#smsText').value = txt.length > 400000 ? txt.slice(0, 400000) : txt; const r = parseInput(txt); pending = r.parsed; pendingInfo = `Read ${el.files[0].name}: found ${r.parsed.length} transaction${r.parsed.length === 1 ? '' : 's'}, ignored ${r.skipped} other message${r.skipped === 1 ? '' : 's'}.`; render(); });
     if (el.id === 'restoreFile') return readFile(el.files[0], (txt) => { try { const j = JSON.parse(txt); if (!j.data || !Array.isArray(j.data.txs)) throw 0; D = Object.assign(defaults(), j.data); D.settings = Object.assign(defaults().settings, D.settings); save(); render(); toast('Backup restored.'); } catch (x) { toast('That file is not a valid backup.'); } });
     const b = el.dataset && el.dataset.bind; if (!b) return;
     if (b === 'sel') pending[+el.dataset.i].sel = el.checked, render();

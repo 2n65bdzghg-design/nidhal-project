@@ -409,20 +409,24 @@ INDEX.sort((a, b) => a.g - b.g || b.k.length - a.k.length); // real brands win o
   }
 
   const MONTHS = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
-  function findDate(text, now) {
+  /** Find a date (and time) anywhere in the text. Returns a Date, or null when there is none. */
+  function parseDate(text) {
+    text = normalizeDigits(String(text || '')).replace(/[   ]/g, ' ');
     let y, mo, d, m;
-    if ((m = text.match(/\b(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})\b/))) { y = +m[1]; mo = +m[2] - 1; d = +m[3]; }
+    if ((m = text.match(/\b(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})(?!\d)/))) { y = +m[1]; mo = +m[2] - 1; d = +m[3]; }
     else if ((m = text.match(/\b(\d{1,2})[\/\-. ]?(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*[\/\-., ]*(\d{2,4})\b/i))) { d = +m[1]; mo = MONTHS[m[2].toLowerCase()]; y = +m[3]; }
+    else if ((m = text.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})(?:st|nd|rd|th)?,?\s+(\d{4})\b/i))) { mo = MONTHS[m[1].toLowerCase()]; d = +m[2]; y = +m[3]; }
     else if ((m = text.match(/\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})\b/))) { d = +m[1]; mo = +m[2] - 1; y = +m[3]; }
-    else return now.toISOString();
+    else return null;
     if (y < 100) y += 2000;
-    if (mo < 0 || mo > 11 || d < 1 || d > 31) return now.toISOString();
-    const t = text.match(/\b(\d{1,2}):(\d{2})(?::\d{2})?\s*(am|pm)?\b/i);
+    if (mo < 0 || mo > 11 || d < 1 || d > 31) return null;
+    const t = text.match(/(?:^|[^\d])(\d{1,2}):(\d{2})(?::\d{2})?\s*(am|pm|a\.m\.|p\.m\.|ص|م)?(?![\d:])/i);
     let hh = t ? +t[1] : 12; const mm = t ? +t[2] : 0;
-    if (t && t[3]) { const pm = t[3].toLowerCase() === 'pm'; if (pm && hh < 12) hh += 12; if (!pm && hh === 12) hh = 0; }
+    if (t && t[3]) { const pm = /^p|^م/i.test(t[3]); if (pm && hh < 12) hh += 12; if (!pm && hh === 12) hh = 0; }
     const dt = new Date(y, mo, d, hh, mm);
-    return isNaN(dt.getTime()) ? now.toISOString() : dt.toISOString();
+    return isNaN(dt.getTime()) ? null : dt;
   }
+  function findDate(text, now) { return (parseDate(text) || now).toISOString(); }
 
   function detectBank(text) {
     for (const [name, re] of BANKS) if (re.test(text)) return name;
@@ -494,6 +498,6 @@ INDEX.sort((a, b) => a.g - b.g || b.k.length - a.k.length); // real brands win o
     return { parsed, skipped };
   }
 
-  const api = { CATEGORIES, catById, MERCHANTS, BANKS, RATES, parseMessage, parseMany, matchMerchant, normalizeDigits, key, looksLikeTransaction };
+  const api = { CATEGORIES, catById, MERCHANTS, BANKS, RATES, parseMessage, parseMany, parseDate, matchMerchant, normalizeDigits, key, looksLikeTransaction };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.Oman = api;
 })(typeof window !== 'undefined' ? window : globalThis);
